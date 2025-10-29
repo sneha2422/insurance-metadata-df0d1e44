@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Asset } from '@/types';
+import { Asset, Claim, Policy } from '@/types';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, CheckCircle, TrendingUp, AlertCircle } from 'lucide-react';
@@ -9,17 +9,17 @@ interface FraudDashboardProps {
 }
 
 export const FraudDashboard = ({ assets }: FraudDashboardProps) => {
-  const claims = assets.filter(a => a.asset_type === 'Claim');
-  const policies = assets.filter(a => a.asset_type === 'Policy');
+  const claims = assets.filter(a => a.type === 'Claim') as Claim[];
+  const policies = assets.filter(a => a.type === 'Policy') as Policy[];
 
-  const calculateFraudScore = (claim: Asset): boolean => {
-    if (!claim.claim_amount || claim.claim_amount <= 5000) return false;
+  const calculateFraudScore = (claim: Claim): boolean => {
+    if (claim.claimAmount <= 5000) return false;
 
-    const policy = policies.find(p => p.id === claim.policy_id);
+    const policy = policies.find(p => p.id === claim.policyId);
     if (!policy) return false;
 
-    const policyDate = new Date(policy.creation_date);
-    const claimDate = new Date(claim.creation_date);
+    const policyDate = new Date(policy.creationDate);
+    const claimDate = new Date(claim.creationDate);
     const daysDiff = Math.floor((claimDate.getTime() - policyDate.getTime()) / (1000 * 60 * 60 * 24));
 
     return daysDiff < 90;
@@ -117,10 +117,10 @@ export const FraudDashboard = ({ assets }: FraudDashboardProps) => {
                     <tr key={claim.id} className="border-b hover:bg-muted/50">
                       <td className="py-3 px-4 font-medium">{claim.name}</td>
                       <td className="py-3 px-4">
-                        ${claim.claim_amount?.toLocaleString() || '0'}
+                        ${claim.claimAmount.toLocaleString()}
                       </td>
                       <td className="py-3 px-4">
-                        <Badge variant="outline">{claim.status || 'N/A'}</Badge>
+                        <Badge variant="outline">{claim.status}</Badge>
                       </td>
                       <td className="py-3 px-4">
                         {claim.isSuspicious ? (
@@ -136,7 +136,7 @@ export const FraudDashboard = ({ assets }: FraudDashboardProps) => {
                         )}
                       </td>
                       <td className="py-3 px-4 text-sm text-muted-foreground">
-                        {new Date(claim.creation_date).toLocaleDateString()}
+                        {new Date(claim.creationDate).toLocaleDateString()}
                       </td>
                     </tr>
                   ))}

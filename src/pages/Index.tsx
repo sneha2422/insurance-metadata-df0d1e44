@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
+import { auth, initializeAuth } from '@/lib/firebase';
 import { useAssets } from '@/hooks/useAssets';
 import { MetadataCatalog } from '@/components/MetadataCatalog';
 import { DataLineageVisualizer } from '@/components/DataLineageVisualizer';
@@ -8,52 +7,34 @@ import { FraudDashboard } from '@/components/FraudDashboard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Shield, Network, AlertTriangle, Eye, EyeOff, User, LogOut } from 'lucide-react';
+import { Shield, Network, AlertTriangle, Eye, EyeOff, User } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 const Index = () => {
   const [userId, setUserId] = useState<string>('');
   const [viewMode, setViewMode] = useState(false);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
   const { assets, loading: assetsLoading, createAsset, updateAsset, deleteAsset } = useAssets();
 
   useEffect(() => {
-    // Check initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        setUserId(session.user.id);
+    const initialize = async () => {
+      try {
+        const user = await initializeAuth();
+        setUserId(user?.uid || 'anonymous');
         setLoading(false);
-      } else {
-        navigate('/auth');
-      }
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.user) {
-        setUserId(session.user.id);
+      } catch (error) {
+        console.error('Failed to initialize auth:', error);
+        toast({
+          title: 'Authentication Error',
+          description: 'Failed to authenticate. Please refresh the page.',
+          variant: 'destructive'
+        });
         setLoading(false);
-      } else {
-        navigate('/auth');
       }
-    });
+    };
 
-    return () => subscription.unsubscribe();
-  }, [navigate]);
-
-  const handleSignOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to sign out',
-        variant: 'destructive'
-      });
-    } else {
-      navigate('/auth');
-    }
-  };
+    initialize();
+  }, []);
 
   if (loading) {
     return (
@@ -94,15 +75,6 @@ const Index = () => {
               >
                 {viewMode ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                 {viewMode ? 'View Only' : 'Edit Mode'}
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleSignOut}
-                className="gap-2"
-              >
-                <LogOut className="h-4 w-4" />
-                Sign Out
               </Button>
             </div>
           </div>

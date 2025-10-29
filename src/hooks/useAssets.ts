@@ -1,65 +1,44 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, query } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import { Asset } from '@/types';
 import { toast } from '@/hooks/use-toast';
+
+const COLLECTION_PATH = 'metadata_catalog';
 
 export const useAssets = () => {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch initial data
-    const fetchAssets = async () => {
-      const { data, error } = await supabase
-        .from('metadata_catalog')
-        .select('*')
-        .order('creation_date', { ascending: false });
-
-      if (error) {
+    const q = query(collection(db, COLLECTION_PATH));
+    
+    const unsubscribe = onSnapshot(q, 
+      (snapshot) => {
+        const data = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as Asset[];
+        setAssets(data);
+        setLoading(false);
+      },
+      (error) => {
         console.error('Error fetching assets:', error);
         toast({
           title: 'Error',
           description: 'Failed to load assets',
           variant: 'destructive'
         });
-      } else {
-        setAssets(data || []);
+        setLoading(false);
       }
-      setLoading(false);
-    };
+    );
 
-    fetchAssets();
-
-    // Subscribe to realtime changes
-    const channel = supabase
-      .channel('metadata_catalog_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'metadata_catalog'
-        },
-        () => {
-          // Refetch when any change occurs
-          fetchAssets();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => unsubscribe();
   }, []);
 
   const createAsset = async (asset: Omit<Asset, 'id'>) => {
     try {
-      const { error } = await supabase
-        .from('metadata_catalog')
-        .insert([asset]);
-
-      if (error) throw error;
-
+      await addDoc(collection(db, COLLECTION_PATH), asset);
       toast({
         title: 'Success',
         description: 'Asset created successfully'
@@ -76,13 +55,7 @@ export const useAssets = () => {
 
   const updateAsset = async (id: string, asset: Partial<Asset>) => {
     try {
-      const { error } = await supabase
-        .from('metadata_catalog')
-        .update(asset)
-        .eq('id', id);
-
-      if (error) throw error;
-
+      await updateDoc(doc(db, COLLECTION_PATH, id), asset);
       toast({
         title: 'Success',
         description: 'Asset updated successfully'
@@ -99,13 +72,7 @@ export const useAssets = () => {
 
   const deleteAsset = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('metadata_catalog')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
+      await deleteDoc(doc(db, COLLECTION_PATH, id));
       toast({
         title: 'Success',
         description: 'Asset deleted successfully'

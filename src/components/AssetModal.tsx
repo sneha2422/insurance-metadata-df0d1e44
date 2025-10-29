@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Asset, AssetType, RegulatoryTag, ClaimStatus } from '@/types';
+import { Asset, AssetType, RegTag, ClaimStatus } from '@/types';
 
 interface AssetModalProps {
   open: boolean;
@@ -20,16 +20,16 @@ interface AssetModalProps {
 
 export const AssetModal = ({ open, onClose, onSave, asset, policies, claims, userId }: AssetModalProps) => {
   const [formData, setFormData] = useState<any>({
-    asset_type: 'Policy',
+    type: 'Policy',
     name: '',
     description: '',
-    pii_tag: false,
-    reg_tag: 'None',
-    data_type: 'Record',
-    claim_amount: 0,
+    piiTag: false,
+    regTag: 'None',
+    dataType: 'Record',
+    claimAmount: 0,
     status: 'New',
-    policy_id: '',
-    source_claim_ids: []
+    policyId: '',
+    sourceClaimId: []
   });
 
   useEffect(() => {
@@ -37,16 +37,16 @@ export const AssetModal = ({ open, onClose, onSave, asset, policies, claims, use
       setFormData(asset);
     } else {
       setFormData({
-        asset_type: 'Policy',
+        type: 'Policy',
         name: '',
         description: '',
-        pii_tag: false,
-        reg_tag: 'None',
-        data_type: 'Record',
-        claim_amount: 0,
+        piiTag: false,
+        regTag: 'None',
+        dataType: 'Record',
+        claimAmount: 0,
         status: 'New',
-        policy_id: '',
-        source_claim_ids: []
+        policyId: '',
+        sourceClaimId: []
       });
     }
   }, [asset, open]);
@@ -57,24 +57,23 @@ export const AssetModal = ({ open, onClose, onSave, asset, policies, claims, use
     const baseData = {
       name: formData.name,
       description: formData.description,
-      owner_id: userId,
-      creation_date: asset?.creation_date || new Date().toISOString(),
-      pii_tag: formData.pii_tag,
-      reg_tag: formData.reg_tag as RegulatoryTag,
-      asset_type: formData.asset_type
+      ownerId: userId,
+      creationDate: asset?.creationDate || new Date().toISOString(),
+      piiTag: formData.piiTag,
+      regTag: formData.regTag as RegTag
     };
 
-    let assetData: any = { ...baseData };
+    let assetData: any = { ...baseData, type: formData.type };
 
-    if (formData.asset_type === 'Policy') {
-      assetData.data_type = 'Record';
-    } else if (formData.asset_type === 'Claim') {
-      assetData.claim_amount = Number(formData.claim_amount);
+    if (formData.type === 'Policy') {
+      assetData.dataType = 'Record';
+    } else if (formData.type === 'Claim') {
+      assetData.claimAmount = Number(formData.claimAmount);
       assetData.status = formData.status;
-      assetData.policy_id = formData.policy_id;
-    } else if (formData.asset_type === 'Model') {
-      assetData.data_type = 'Result';
-      assetData.source_claim_ids = formData.source_claim_ids;
+      assetData.policyId = formData.policyId;
+    } else if (formData.type === 'Model') {
+      assetData.dataType = 'Result';
+      assetData.sourceClaimId = formData.sourceClaimId;
     }
 
     onSave(assetData);
@@ -90,10 +89,10 @@ export const AssetModal = ({ open, onClose, onSave, asset, policies, claims, use
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="asset_type">Asset Type</Label>
+            <Label htmlFor="type">Asset Type</Label>
             <Select
-              value={formData.asset_type}
-              onValueChange={(value) => setFormData({ ...formData, asset_type: value })}
+              value={formData.type}
+              onValueChange={(value) => setFormData({ ...formData, type: value })}
               disabled={!!asset}
             >
               <SelectTrigger>
@@ -129,18 +128,18 @@ export const AssetModal = ({ open, onClose, onSave, asset, policies, claims, use
 
           <div className="flex items-center space-x-2">
             <Checkbox
-              id="pii_tag"
-              checked={formData.pii_tag}
-              onCheckedChange={(checked) => setFormData({ ...formData, pii_tag: checked })}
+              id="piiTag"
+              checked={formData.piiTag}
+              onCheckedChange={(checked) => setFormData({ ...formData, piiTag: checked })}
             />
-            <Label htmlFor="pii_tag" className="cursor-pointer">Contains PII</Label>
+            <Label htmlFor="piiTag" className="cursor-pointer">Contains PII</Label>
           </div>
 
           <div>
-            <Label htmlFor="reg_tag">Regulatory Tag</Label>
+            <Label htmlFor="regTag">Regulatory Tag</Label>
             <Select
-              value={formData.reg_tag}
-              onValueChange={(value) => setFormData({ ...formData, reg_tag: value })}
+              value={formData.regTag}
+              onValueChange={(value) => setFormData({ ...formData, regTag: value })}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -154,15 +153,15 @@ export const AssetModal = ({ open, onClose, onSave, asset, policies, claims, use
             </Select>
           </div>
 
-          {formData.asset_type === 'Claim' && (
+          {formData.type === 'Claim' && (
             <>
               <div>
-                <Label htmlFor="claim_amount">Claim Amount *</Label>
+                <Label htmlFor="claimAmount">Claim Amount *</Label>
                 <Input
-                  id="claim_amount"
+                  id="claimAmount"
                   type="number"
-                  value={formData.claim_amount}
-                  onChange={(e) => setFormData({ ...formData, claim_amount: e.target.value })}
+                  value={formData.claimAmount}
+                  onChange={(e) => setFormData({ ...formData, claimAmount: e.target.value })}
                   required
                 />
               </div>
@@ -185,10 +184,10 @@ export const AssetModal = ({ open, onClose, onSave, asset, policies, claims, use
               </div>
 
               <div>
-                <Label htmlFor="policy_id">Policy *</Label>
+                <Label htmlFor="policyId">Policy *</Label>
                 <Select
-                  value={formData.policy_id}
-                  onValueChange={(value) => setFormData({ ...formData, policy_id: value })}
+                  value={formData.policyId}
+                  onValueChange={(value) => setFormData({ ...formData, policyId: value })}
                   required
                 >
                   <SelectTrigger>
@@ -206,7 +205,7 @@ export const AssetModal = ({ open, onClose, onSave, asset, policies, claims, use
             </>
           )}
 
-          {formData.asset_type === 'Model' && (
+          {formData.type === 'Model' && (
             <div>
               <Label>Source Claims *</Label>
               <div className="space-y-2 mt-2 max-h-40 overflow-y-auto border rounded-md p-2">
@@ -214,17 +213,17 @@ export const AssetModal = ({ open, onClose, onSave, asset, policies, claims, use
                   <div key={claim.id} className="flex items-center space-x-2">
                     <Checkbox
                       id={claim.id}
-                      checked={formData.source_claim_ids.includes(claim.id)}
+                      checked={formData.sourceClaimId.includes(claim.id)}
                       onCheckedChange={(checked) => {
                         if (checked) {
                           setFormData({
                             ...formData,
-                            source_claim_ids: [...formData.source_claim_ids, claim.id]
+                            sourceClaimId: [...formData.sourceClaimId, claim.id]
                           });
                         } else {
                           setFormData({
                             ...formData,
-                            source_claim_ids: formData.source_claim_ids.filter((id: string) => id !== claim.id)
+                            sourceClaimId: formData.sourceClaimId.filter((id: string) => id !== claim.id)
                           });
                         }
                       }}

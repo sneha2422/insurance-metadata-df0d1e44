@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AssetModal } from './AssetModal';
-import { Asset, RegulatoryTag } from '@/types';
+import { Asset, RegTag } from '@/types';
 import { Search, Plus, Edit, Trash2, AlertCircle } from 'lucide-react';
 import {
   AlertDialog,
@@ -45,8 +45,8 @@ export const MetadataCatalog = ({
 
   const filteredAssets = assets.filter(asset => {
     const matchesSearch = asset.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRegTag = filterRegTag === 'all' || asset.reg_tag === filterRegTag;
-    const matchesType = filterType === 'all' || asset.asset_type === filterType;
+    const matchesRegTag = filterRegTag === 'all' || asset.regTag === filterRegTag;
+    const matchesType = filterType === 'all' || asset.type === filterType;
     return matchesSearch && matchesRegTag && matchesType;
   });
 
@@ -81,14 +81,14 @@ export const MetadataCatalog = ({
     }
   };
 
-  const getRegTagColor = (tag?: RegulatoryTag) => {
+  const getRegTagColor = (tag: RegTag) => {
     const colors = {
       GDPR: 'bg-primary/10 text-primary border-primary/20',
       HIPAA: 'bg-accent/10 text-accent border-accent/20',
       CCPA: 'bg-success/10 text-success border-success/20',
       None: 'bg-muted text-muted-foreground border-border'
     };
-    return colors[tag || 'None'];
+    return colors[tag];
   };
 
   const getTypeColor = (type: string) => {
@@ -100,8 +100,8 @@ export const MetadataCatalog = ({
     return colors[type as keyof typeof colors];
   };
 
-  const policies = assets.filter(a => a.asset_type === 'Policy');
-  const claims = assets.filter(a => a.asset_type === 'Claim');
+  const policies = assets.filter(a => a.type === 'Policy');
+  const claims = assets.filter(a => a.type === 'Claim');
 
   return (
     <div className="space-y-6">
@@ -158,11 +158,11 @@ export const MetadataCatalog = ({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-2 flex-wrap">
                   <h3 className="text-lg font-semibold truncate">{asset.name}</h3>
-                  <Badge className={getTypeColor(asset.asset_type)}>{asset.asset_type}</Badge>
-                  <Badge variant="outline" className={getRegTagColor(asset.reg_tag)}>
-                    {asset.reg_tag || 'None'}
+                  <Badge className={getTypeColor(asset.type)}>{asset.type}</Badge>
+                  <Badge variant="outline" className={getRegTagColor(asset.regTag)}>
+                    {asset.regTag}
                   </Badge>
-                  {asset.pii_tag && (
+                  {asset.piiTag && (
                     <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/20">
                       <AlertCircle className="h-3 w-3 mr-1" />
                       PII
@@ -174,10 +174,10 @@ export const MetadataCatalog = ({
                 
                 <div className="flex gap-4 text-xs text-muted-foreground flex-wrap">
                   <span>ID: {asset.id.substring(0, 8)}...</span>
-                  <span>Owner: {asset.owner_id.substring(0, 8)}...</span>
-                  <span>Created: {new Date(asset.creation_date).toLocaleDateString()}</span>
-                  {asset.claim_amount && <span>Amount: ${asset.claim_amount.toLocaleString()}</span>}
-                  {asset.status && <span>Status: {asset.status}</span>}
+                  <span>Owner: {asset.ownerId.substring(0, 8)}...</span>
+                  <span>Created: {new Date(asset.creationDate).toLocaleDateString()}</span>
+                  {'claimAmount' in asset && <span>Amount: ${asset.claimAmount.toLocaleString()}</span>}
+                  {'status' in asset && <span>Status: {asset.status}</span>}
                 </div>
               </div>
 
