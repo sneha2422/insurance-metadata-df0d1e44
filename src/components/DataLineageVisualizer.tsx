@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Asset, Policy, Claim, Model } from '@/types';
+import { Asset } from '@/types';
 import { Card } from '@/components/ui/card';
 
 interface DataLineageVisualizerProps {
@@ -19,9 +19,9 @@ export const DataLineageVisualizer = ({ assets }: DataLineageVisualizerProps) =>
   const svgRef = useRef<SVGSVGElement>(null);
   const [selectedNode, setSelectedNode] = useState<Asset | null>(null);
 
-  const policies = assets.filter(a => a.type === 'Policy') as Policy[];
-  const claims = assets.filter(a => a.type === 'Claim') as Claim[];
-  const models = assets.filter(a => a.type === 'Model') as Model[];
+  const policies = assets.filter(a => a.asset_type === 'Policy');
+  const claims = assets.filter(a => a.asset_type === 'Claim');
+  const models = assets.filter(a => a.asset_type === 'Model');
 
   const nodeWidth = 160;
   const nodeHeight = 80;
@@ -49,7 +49,7 @@ export const DataLineageVisualizer = ({ assets }: DataLineageVisualizerProps) =>
         type: 'Policy',
         x: 50,
         y: 50 + i * rowGap,
-        piiTag: policy.piiTag
+        piiTag: policy.pii_tag || false
       });
     });
 
@@ -61,11 +61,11 @@ export const DataLineageVisualizer = ({ assets }: DataLineageVisualizerProps) =>
         type: 'Claim',
         x: 50 + columnGap,
         y: 50 + i * rowGap,
-        piiTag: claim.piiTag
+        piiTag: claim.pii_tag || false
       };
       nodes.push(claimNode);
 
-      const policyNode = nodes.find(n => n.id === claim.policyId);
+      const policyNode = nodes.find(n => n.id === claim.policy_id);
       if (policyNode) {
         edges.push({ from: policyNode, to: claimNode });
       }
@@ -79,16 +79,18 @@ export const DataLineageVisualizer = ({ assets }: DataLineageVisualizerProps) =>
         type: 'Model',
         x: 50 + columnGap * 2,
         y: 50 + i * rowGap,
-        piiTag: model.piiTag
+        piiTag: model.pii_tag || false
       };
       nodes.push(modelNode);
 
-      model.sourceClaimId.forEach(claimId => {
-        const claimNode = nodes.find(n => n.id === claimId);
-        if (claimNode) {
-          edges.push({ from: claimNode, to: modelNode });
-        }
-      });
+      if (model.source_claim_ids) {
+        model.source_claim_ids.forEach(claimId => {
+          const claimNode = nodes.find(n => n.id === claimId);
+          if (claimNode) {
+            edges.push({ from: claimNode, to: modelNode });
+          }
+        });
+      }
     });
 
     const svgHeight = Math.max(...nodes.map(n => n.y)) + nodeHeight + 50;
@@ -211,10 +213,10 @@ export const DataLineageVisualizer = ({ assets }: DataLineageVisualizerProps) =>
           <div className="space-y-2 text-sm">
             <p><strong>Name:</strong> {selectedNode.name}</p>
             <p><strong>ID:</strong> {selectedNode.id}</p>
-            <p><strong>Type:</strong> {selectedNode.type}</p>
-            <p><strong>PII Tag:</strong> {selectedNode.piiTag ? 'Yes' : 'No'}</p>
-            <p><strong>Regulatory Tag:</strong> {selectedNode.regTag}</p>
-            <p><strong>Description:</strong> {selectedNode.description}</p>
+            <p><strong>Type:</strong> {selectedNode.asset_type}</p>
+            <p><strong>PII Tag:</strong> {selectedNode.pii_tag ? 'Yes' : 'No'}</p>
+            <p><strong>Regulatory Tag:</strong> {selectedNode.reg_tag || 'None'}</p>
+            <p><strong>Description:</strong> {selectedNode.description || 'N/A'}</p>
           </div>
         </Card>
       )}

@@ -14,7 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      metadata_catalog: {
+        Row: {
+          asset_type: Database["public"]["Enums"]["asset_type"]
+          claim_amount: number | null
+          creation_date: string
+          data_type: Database["public"]["Enums"]["data_type"] | null
+          description: string | null
+          id: string
+          name: string
+          owner_id: string
+          pii_tag: boolean | null
+          policy_id: string | null
+          reg_tag: Database["public"]["Enums"]["regulatory_tag"] | null
+          source_claim_ids: string[] | null
+          status: Database["public"]["Enums"]["claim_status"] | null
+        }
+        Insert: {
+          asset_type: Database["public"]["Enums"]["asset_type"]
+          claim_amount?: number | null
+          creation_date?: string
+          data_type?: Database["public"]["Enums"]["data_type"] | null
+          description?: string | null
+          id?: string
+          name: string
+          owner_id: string
+          pii_tag?: boolean | null
+          policy_id?: string | null
+          reg_tag?: Database["public"]["Enums"]["regulatory_tag"] | null
+          source_claim_ids?: string[] | null
+          status?: Database["public"]["Enums"]["claim_status"] | null
+        }
+        Update: {
+          asset_type?: Database["public"]["Enums"]["asset_type"]
+          claim_amount?: number | null
+          creation_date?: string
+          data_type?: Database["public"]["Enums"]["data_type"] | null
+          description?: string | null
+          id?: string
+          name?: string
+          owner_id?: string
+          pii_tag?: boolean | null
+          policy_id?: string | null
+          reg_tag?: Database["public"]["Enums"]["regulatory_tag"] | null
+          source_claim_ids?: string[] | null
+          status?: Database["public"]["Enums"]["claim_status"] | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +70,10 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      asset_type: "Policy" | "Claim" | "Model"
+      claim_status: "New" | "In Review" | "Paid"
+      data_type: "Record" | "Claim" | "Result"
+      regulatory_tag: "GDPR" | "HIPAA" | "CCPA" | "None"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +200,11 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      asset_type: ["Policy", "Claim", "Model"],
+      claim_status: ["New", "In Review", "Paid"],
+      data_type: ["Record", "Claim", "Result"],
+      regulatory_tag: ["GDPR", "HIPAA", "CCPA", "None"],
+    },
   },
 } as const

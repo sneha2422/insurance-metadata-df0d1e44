@@ -1,34 +1,24 @@
-export type RegTag = 'GDPR' | 'HIPAA' | 'CCPA' | 'None';
-export type DataType = 'Record' | 'Claim' | 'Result';
-export type ClaimStatus = 'New' | 'In Review' | 'Paid';
+export type RegulatoryTag = 'GDPR' | 'HIPAA' | 'CCPA' | 'None';
 export type AssetType = 'Policy' | 'Claim' | 'Model';
+export type ClaimStatus = 'New' | 'In Review' | 'Paid';
+export type DataType = 'Record' | 'Claim' | 'Result';
 
-export interface BaseAsset {
+export interface Asset {
   id: string;
   name: string;
-  description: string;
-  ownerId: string;
-  creationDate: string;
-  piiTag: boolean;
-  regTag: RegTag;
+  description?: string;
+  owner_id: string;
+  creation_date: string;
+  asset_type: AssetType;
+  data_type?: DataType;
+  pii_tag?: boolean;
+  reg_tag?: RegulatoryTag;
+  
+  // Claim-specific fields
+  claim_amount?: number;
+  status?: ClaimStatus;
+  policy_id?: string;
+  
+  // Model-specific fields
+  source_claim_ids?: string[];
 }
-
-export interface Policy extends BaseAsset {
-  type: 'Policy';
-  dataType: 'Record';
-}
-
-export interface Claim extends BaseAsset {
-  type: 'Claim';
-  claimAmount: number;
-  status: ClaimStatus;
-  policyId: string;
-}
-
-export interface Model extends BaseAsset {
-  type: 'Model';
-  dataType: 'Result';
-  sourceClaimId: string[];
-}
-
-export type Asset = Policy | Claim | Model;
